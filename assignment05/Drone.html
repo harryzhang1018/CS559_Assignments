@@ -1,17 +1,21 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Visualization of viewing transforms and associated coordinate systems</title>
+    <title>Flying Drone </title>
   </head>
   <body>
-    [Left window] View by a remote external observer; [Right window] View from location of the camera</br>
+    Speed Adjustable Drones Flying on a Adjustable 
+    [Left window] Third-Person Viewpoint;      [Right window] Camera View</br>
+    </br>
     <canvas id="observerCanvas" width="400" height="400" style="border:1px solid #888;"></canvas>
     <canvas id="cameraCanvas" width="400" height="400" style="border:1px solid #888;"></canvas>
     </br>
-    <input id="slider1" type="range" min="0" max="300" /> Move object along curve
+    <input id="slider1" type="range" min="0" max="300" /> Drone's Speed along curve
     </br>
     <input id="slider2" type="range" min="0" max="100" /> Move camera around scene
+    </br>
+    <input id="slider3" type="range" min="0" max="10" /> Adjust Curve Shape
     <script type="text/javascript" src="gl-matrix-min.js"></script>
-    <script src="demo.js" id="module"></script>
+    <script src="Drone.js" id="module"></script>
   </body>
 </html>

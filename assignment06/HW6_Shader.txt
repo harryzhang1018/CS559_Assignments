@@ -1,0 +1,125 @@
+#ifdef VS 
+ 
+precision highp float;
+attribute vec3 position;
+attribute vec3 normal;
+uniform mat3 normalMatrix;
+uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
+varying vec3 fNormal;
+varying vec3 fPosition;
+
+uniform float time;
+
+const float pi=3.14159;
+varying vec3 modelX;
+varying vec3 modelN;
+varying vec3 rawX;
+
+vec2 Rotate2D(vec2 vec_in, float angle)
+{
+  vec2 vec_out;
+  vec_out.x=cos(angle)*vec_in.x+sin(angle)*vec_in.y;
+  vec_out.y=sin(angle)*vec_in.x+cos(angle)*vec_in.y;
+  return vec_out;
+}
+
+// this allows shader to have "flashing effect" by setting
+// position "negative" meaning invisible.
+vec3 Flash(vec3 position_in, float frequency)
+{
+  vec3 position_out;
+  position_out = position_in * frequency;
+  return position_out;
+}
+
+
+void main()
+{
+  modelX=position;
+  rawX=position;
+  modelN=normal;  
+  
+  // apply rotation to the normal vector, since we do it for xz, and xy which is in the surface sense without doing 3D twisting. Chaning the normal vector will cause the light spots (specular reflection) to have an uneven distribution overtime. The automatic process over time is made possible becasue of "time" function
+  modelN.xz = Rotate2D(modelN.xz,0.5*pi*modelX.x*sin(20.0*time)); 
+  modelN.xy = Rotate2D(modelN.xy,0.5*pi*modelX.x*sin(20.0*time)); 
+  fNormal = normalize(normalMatrix * modelN);
+  
+  vec4 pos = modelViewMatrix * vec4(modelX, 1.0);
+  //call the flash function to create the flash effect
+  pos.xyz = Flash(pos.xyz,(0.5+cos(time*3000.0))); //comment this to stop flashing
+  fPosition = pos.xyz;
+
+  gl_Position = projectionMatrix * pos;
+}
+ 
+#else 
+ 
+precision highp float;
+uniform float time;
+uniform vec2 resolution;
+varying vec3 fPosition;
+varying vec3 fNormal;
+varying vec3 rawX;
+float ambient_coeff   = 0.45;
+const float specular_coeff  = 2.0;
+const float specular_exp    = 3.0;
+const vec3  light_direction = vec3(-1.0,1.0,1.0); // stationary light
+const vec3  light_color     = vec3(1.0,1.0,1.0);
+vec3  object_color    = vec3(0.0,0.0,0.0); // black as initial color
+
+// this funciton allows us to change object color automatically with help of `time`
+vec3 ChangeColor(vec3 c_in)
+{   //green component
+    vec3 c_out;
+    if (c_in.y>1.0){
+      c_in.y = 0.0; 
+      c_out.y = c_in.y;
+    }
+    else {c_in.y =sin(time*100.0);c_out.y = c_in.y;}
+    //blue component color
+    if (c_in.z>1.0){
+      c_in.z = 0.0;
+      c_out.z = c_in.z;
+    }
+    else {c_in.z =sin(time*20.0);c_out.z = c_in.z;}
+    //red component color
+    if (c_in.x>1.0){
+      c_in.x = 0.0;
+      c_out.x = c_in.x;
+    }
+    else {c_in.x =sin(time*70.0);c_out.x = c_in.x;}
+    
+    return c_out.xyz;
+}
+
+// This function allows us to gridize the object into varing density; Discard function here is to do the "wipe out" work; and time function here is to made automation process possible
+void GridEffect(){
+  float density;
+  density = 100.0*sin(time*10.0)+100.0;
+  if(sin(density*rawX.x)>0.5) discard;
+  if(cos(density*rawX.y)>0.5) discard;
+  if(cos(density*rawX.z)>0.5) discard;
+}
+
+
+void main()
+{ 
+  vec3 l = normalize(light_direction);
+  vec3 n = normalize(fNormal); //normal vector
+  vec3 e = normalize(-fPosition); //eye direction
+  vec3 h = normalize (e+l); //half way vector
+  
+  // call change color function to automatically switch color
+  object_color = ChangeColor(object_color);
+  ambient_coeff = ambient_coeff*(1.0+sin(time*15.0));
+  vec3 ambient_color  =  ambient_coeff * object_color;
+  
+  vec3 specular_color = specular_coeff * pow(max(0.0,dot(n,h)),specular_exp) * light_color;
+
+  gl_FragColor = vec4(ambient_color+specular_color, 1.0);
+  
+  GridEffect(); // comment out this line to stop gridizing the object
+}
+ 
+#endif
