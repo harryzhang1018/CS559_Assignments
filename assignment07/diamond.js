@@ -1,5 +1,7 @@
+var val = 0;
+var timer = 0;
 function start() {
-
+  
   // Get canvas, WebGL context, twgl.m4
   var canvas = document.getElementById("mycanvas");
   var gl = canvas.getContext("webgl");
@@ -9,7 +11,6 @@ function start() {
   slider1.value = 0;
   var slider2 = document.getElementById('slider2');
   slider2.value = 0;
-
   // Read shader source
   var vertexSource = document.getElementById("vertexShader").text;
   var fragmentSource = document.getElementById("fragmentShader").text;
@@ -176,17 +177,23 @@ function start() {
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
   var image2 = new Image();
 
-  function initTextureThenDraw()
-  {
+  function initTextureThenDraw(value)
+  { console.log(value);
     image1.onload = function() { loadTexture(image1,texture1); };
     image1.crossOrigin = "anonymous";
     //https://live.staticflickr.com/65535/52545555615_b33894795f_o.jpg
-    image1.src = "https://farm6.staticflickr.com/65535/52545555615_b33894795f_b.jpg";
-    //image1.src = "https://farm6.staticflickr.com/5564/30725680942_e3bfe50e5e_b.jpg";
+    //https://farm6.staticflickr.com/65535/52544554082_72cac32dc7_b.jpg
+    if (value>30 && value<60){
+    image1.src = "https://live.staticflickr.com/65535/52545555615_b33894795f_b.jpg";}
+    //image1.src = img_src;
+    else if (value<30){image1.src = "https://live.staticflickr.com/65535/52547359928_2efa223480_b.jpg";}
 
-    image2.onload = function() { loadTexture(image2,texture2); };
-    image2.crossOrigin = "anonymous";
-    image2.src = "https://farm6.staticflickr.com/5726/30206830053_87e9530b48_b.jpg";
+    else {image1.src = "https://live.staticflickr.com/65535/52547472208_19b26870a4_b.jpg"}
+    //image1.src = "https://live.staticflickr.com/65535/52546802616_af268257a3_b.jpg";
+    //image1.src = "https://live.staticflickr.com/65535/52547359928_2efa223480_b.jpg";
+//     image2.onload = function() { loadTexture(image2,texture2); };
+//     image2.crossOrigin = "anonymous";
+//     image2.src = "https://live.staticflickr.com/65535/52547359928_2efa223480_b.jpg";
 
     window.setTimeout(draw,200);
   }
@@ -210,12 +217,14 @@ function start() {
   }
 
   // Scene (re-)draw routine
+  var angle1 = 0;
   function draw() {
-  
+      //requestAnimationFrame(draw);
+      
       // Translate slider values to angles in the [-pi,pi] interval
-      var angle1 = slider1.value*0.01*Math.PI;
-      var angle2 = slider2.value*0.01*Math.PI;
-  
+      angle1 += slider1.value*0.00002*Math.PI;
+      var timer = slider2.value;
+      
       // Circle around the y-axis
       var eye = [400*Math.sin(angle1),150.0,400.0*Math.cos(angle1)];
       var target = [0,0,0];
@@ -223,7 +232,7 @@ function start() {
   
       var tModel = mat4.create();
       mat4.fromScaling(tModel,[100,100,100]);
-      mat4.rotate(tModel,tModel,angle2,[1,1,1]);
+      mat4.rotate(tModel,tModel,0,[1,1,1]);
     
       var tCamera = mat4.create();
       mat4.lookAt(tCamera, eye, target, up);      
@@ -269,13 +278,14 @@ function start() {
 
       // Do the drawing
       gl.drawElements(gl.TRIANGLES, triangleIndices.length, gl.UNSIGNED_BYTE, 0);
-
+      initTextureThenDraw(timer);
   }
-
+  
   slider1.addEventListener("input",draw);
   slider2.addEventListener("input",draw);
-  initTextureThenDraw();
+  //draw();
+  
 }
 
-window.onload=start;
+window.onload=start();
 

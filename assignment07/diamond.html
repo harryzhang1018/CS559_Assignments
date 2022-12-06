@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>WebGL cube drawn with indexed vertex list</title>
+    <title>Diamond</title>
   </head>
 
   <body>
@@ -19,9 +19,9 @@
 
       void main(void) {
         gl_Position = uMVP * vec4(vPosition, 1.0);
-        fPosition = (uMV * vec4(vPosition, 1.0)).xyz; // In camera coordinates
+        fPosition = (uMV * vec4(vPosition, 1.0)).xyz; 
         fColor = vColor;
-        fNormal = vNormal;                            // In local coordinates
+        fNormal = vNormal;                            
         fTexCoord = vTexCoord;
      }
     </script>
@@ -37,11 +37,12 @@
       uniform sampler2D texSampler1;
       uniform sampler2D texSampler2;
 
-      const vec3  lightV    = vec3(0.0,-0.3,1.0);
-      const float lightI    = 1.0;               // only for diffuse component
+      const vec3  lightV_1    = vec3(-0.3,-0.3,1.0);
+      const vec3  lightV_2    = vec3(0.3,0.3,-1.0);
+      const float lightI    = 0.5;             
       const float ambientC  = 0.5;
       const float diffuseC  = 0.4;
-      const float specularC = 0.3;
+      const float specularC = 0.8;
       const float specularE = 32.0;
       const vec3  lightCol  = vec3(1.0,1.0,1.0);
       const vec3  objectCol = vec3(1.0,0.6,0.0); // yellow-ish orange
@@ -58,17 +59,36 @@
       void main(void) {
         vec3 texColor=texture2D(texSampler1,fTexCoord).xyz;
         vec3 n = normalize(uMVn * fNormal);
-        vec3 ColorS  = blinnPhongDir(lightV,n,0.0   ,0.0,     0.0,     specularC,specularE).y*lightCol;
-        vec3 ColorAD = blinnPhongDir(lightV,n,lightI,ambientC,diffuseC,0.0,      1.0      ).x*texColor;
+        vec3 ColorS_1  = blinnPhongDir(lightV_1,n,0.0   ,0.0,     0.0,     specularC,specularE).y*lightCol;
+        vec3 ColorAD_1 = blinnPhongDir(lightV_1,n,lightI,ambientC,diffuseC,0.0,      1.0      ).x*texColor;
+        vec3 ColorS_2  = blinnPhongDir(lightV_2,n,0.0   ,0.0,     0.0,     specularC,specularE).y*lightCol;
+        vec3 ColorAD_2 = blinnPhongDir(lightV_2,n,lightI,ambientC,diffuseC,0.0,      1.0      ).x*texColor;
+        vec3 ColorS = ColorS_1 + ColorS_2;
+        vec3 ColorAD = ColorAD_1 + ColorAD_2;
         gl_FragColor = vec4(ColorAD+ColorS,1.0);
       }
     </script>
 
     <canvas id="mycanvas" width="500" height="500"></canvas>
     <br>
-    <input id="slider1" type="range" min="-100" max="100" />
-    <input id="slider2" type="range" min="-100" max="100" />
+    Drag to change the spining speed of diamond
+    <input id="slider1" type="range" min="1" max="100" />
+    <br>
+    Drag to change the texture of diamond
+    <input id="slider2" type="range" min="1" max="100" />
+    <br>
+    Discription: 
+  
+    The main structure of the code come from the in class example. Here are the majors changes and own implementations:
+    <br>
+    (1) Inside Shader code in the html file, I increased the number of lights to be 2, each has half intensity. They are in the diagnal position 
+    so the lighting effects are more even over diamond.
+    <br>
+    (2) Inside Vertex position function, I created more complex object from cubic to this diamond shape, using 18 triangle meshes total.
+    <br>
+    (3) Inside Texture function, I added three sources of textures for diamond object, they could be switched by the slider.
+    
     <script type="text/javascript" src="gl-matrix-min.js"></script>
-    <script src="demo.js" id="module"></script>
+    <script src="diamond.js" id="module"></script>
   </body>
 </html>
